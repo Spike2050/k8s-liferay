@@ -1,12 +1,12 @@
 version: "8.19.7"
 
-javaOpts: "-Xms512m -Xmx512m"
+#javaOpts: "-Xms512m -Xmx512m"
 
-plugins:
-  - analysis-icu
-  - analysis-kuromoji
-  - analysis-smartcn
-  - analysis-stempel
+#plugins:
+#  - analysis-icu
+#  - analysis-kuromoji
+#  - analysis-smartcn
+#  - analysis-stempel
 
 ingress:
   enabled: true

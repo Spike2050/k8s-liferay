@@ -3,6 +3,8 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ include "search-elastic.fullname" . }}
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
 spec:
   ingressClassName: "{{ .Values.ingress.className }}"
   rules:
@@ -13,7 +15,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                # ECK convention: <name>-es-http
                 name: {{ include "search-elastic.fullname" . }}-es-http
                 port:
                   number: 9200
