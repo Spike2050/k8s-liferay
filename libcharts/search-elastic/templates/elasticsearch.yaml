@@ -2,74 +2,60 @@ apiVersion: elasticsearch.k8s.elastic.co/v1
 kind: Elasticsearch
 metadata:
   name: {{ include "search-elastic.fullname" . }}
-  elasticsearch.alpha.k8s.elastic.co/http-scheme: http
 spec:
+  version: {{ .Values.version | quote }}
 
   http:
     tls:
       selfSignedCertificate:
         disabled: true
 
-  version: "{{ .Values.version }}"
-
   nodeSets:
     - name: default
       count: 1
 
       config:
-        cluster.name: "LiferayElasticsearchCluster"
-        # discovery.type: "single-node"
-        bootstrap.memory_lock: true
-        node.store.allow_mmap: false
-
         xpack.security.enabled: false
-        xpack.security.http.ssl.enabled: false
-        xpack.security.enrollment.enabled: false
-
-        node.roles: ["master", "data", "ingest"]
+        xpack.security.transport.ssl.enabled: false
+        discovery.type: single-node
+        node.store.allow_mmap: false
 
       podTemplate:
         spec:
-
-          securityContext:
-            runAsUser: 1000
-            runAsGroup: 1000
-            fsGroup: 1000
-
-          # ---------------------------
-          # Init container: plugins
-          # ---------------------------
           initContainers:
             - name: install-plugins
-              image: "docker.elastic.co/elasticsearch/elasticsearch:{{ .Values.version }}"
+              image: docker.elastic.co/elasticsearch/elasticsearch:{{ .Values.version }}
               command:
                 - sh
                 - -c
                 - |
-                  for p in {{ join " " .Values.plugins }}; do
-                    echo "Installing plugin: $p"
-                    elasticsearch-plugin install --batch "$p"
-                  done
+                  bin/elasticsearch-plugin install --batch analysis-icu
+                  bin/elasticsearch-plugin install --batch analysis-kuromoji
+                  bin/elasticsearch-plugin install --batch analysis-smartcn
+                  bin/elasticsearch-plugin install --batch analysis-stempel
+                  cp -R /usr/share/elasticsearch/plugins /mnt/plugins/
               volumeMounts:
-                - name: elasticsearch-plugins
-                  mountPath: /usr/share/elasticsearch/plugins
+                - name: plugins
+                  mountPath: /mnt/plugins
 
           containers:
             - name: elasticsearch
-              resources:
-                requests:
-                  cpu: 100m
-                  memory: 1Gi
-                limits:
-                  cpu: 500m
-                  memory: 1Gi
               env:
                 - name: ES_JAVA_OPTS
-                  value: "{{ .Values.javaOpts }}"
+                  value: "-Xms1g -Xmx1g"
               volumeMounts:
-                - name: elasticsearch-plugins
+                - name: plugins
                   mountPath: /usr/share/elasticsearch/plugins
 
           volumes:
-            - name: elasticsearch-plugins
+            - name: plugins
               emptyDir: {}
+
+      volumeClaimTemplates:
+        - metadata:
+            name: elasticsearch-data
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 5Gi

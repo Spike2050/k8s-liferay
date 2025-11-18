@@ -24,18 +24,18 @@ version: 0.1.0
 appVersion: "1.16.0"
 
 dependencies:
-  - name: client-extensions
-    version: 0.1.0
-    repository: "file://libcharts/client-extensions"
-  - name: db-mariadb
-    version: 0.1.0
-    repository: "file://libcharts/db-mariadb"
-  - name: liferay-dxp
-    version: 0.1.0
-    repository: "file://libcharts/liferay-dxp"
-  - name: mailhog
-    version: 0.1.0
-    repository: "file://libcharts/mailhog"
+  #  - name: client-extensions
+  #    version: 0.1.0
+  #    repository: "file://libcharts/client-extensions"
+  #  - name: db-mariadb
+  #    version: 0.1.0
+  #    repository: "file://libcharts/db-mariadb"
+  #  - name: liferay-dxp
+  #    version: 0.1.0
+  #    repository: "file://libcharts/liferay-dxp"
+  #  - name: mailhog
+  #    version: 0.1.0
+  #    repository: "file://libcharts/mailhog"
   - name: search-elastic
     version: 0.1.0
     repository: "file://libcharts/search-elastic"
