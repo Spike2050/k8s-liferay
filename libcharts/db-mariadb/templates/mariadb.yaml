@@ -1,0 +1,21 @@
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: MariaDB
+metadata:
+  name: {{ include "db-mariadb.fullname" . }}
+spec:
+  image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+  imagePullPolicy: {{ .Values.image.pullPolicy }}
+
+  rootPasswordSecretKeyRef:
+    name: {{ include "db-mariadb.fullname" . }}
+    key: password
+
+  args:
+    - "--character-set-filesystem=utf8"
+    - "--lower-case-table-names=1"
+
+  storage:
+    size: {{ .Values.storage.size }}
+
+  service:
+    type: LoadBalancer

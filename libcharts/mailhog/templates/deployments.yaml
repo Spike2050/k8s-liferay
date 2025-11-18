@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "mailhog.fullname" . }}
+  labels:
+    app: {{ include "mailhog.name" . }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "mailhog.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "mailhog.name" . }}
+    spec:
+      containers:
+        - name: mailhog
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: smtp
+              containerPort: {{ .Values.service.smtpPort }}
+            - name: web
+              containerPort: {{ .Values.service.webPort }}

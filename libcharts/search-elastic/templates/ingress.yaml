@@ -1,0 +1,20 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "search-elastic.fullname" . }}
+spec:
+  ingressClassName: "{{ .Values.ingress.className }}"
+  rules:
+    - host: "{{ .Values.ingress.host }}"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                # ECK convention: <name>-es-http
+                name: {{ include "search-elastic.fullname" . }}-es-http
+                port:
+                  number: 9200
+{{- end }}

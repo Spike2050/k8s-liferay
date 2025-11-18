@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "mailhog.fullname" . }}
+  labels:
+    app: {{ include "mailhog.name" . }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: web
+      port: {{ .Values.service.webPort }}
+      targetPort: web
+    - name: smtp
+      port: {{ .Values.service.smtpPort }}
+      targetPort: smtp
+  selector:
+    app: {{ include "mailhog.name" . }}

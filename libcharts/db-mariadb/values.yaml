@@ -1,0 +1,14 @@
+image:
+  repository: mariadb
+  tag: "12.0.2" # version of MariaDB image
+  pullPolicy: IfNotPresent
+
+rootPassword:
+  simple: "root"
+
+storage:
+  size: 10Gi
+
+volumes:
+  snapshotsPath: ""
+  dumpPath: ""

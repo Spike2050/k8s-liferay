@@ -1,0 +1,14 @@
+version: "8.19.7"
+
+javaOpts: "-Xms512m -Xmx512m"
+
+plugins:
+  - analysis-icu
+  - analysis-kuromoji
+  - analysis-smartcn
+  - analysis-stempel
+
+ingress:
+  enabled: true
+  host: "elasticsearch.localhost"
+  className: "nginx" # or leave empty for default ingress class

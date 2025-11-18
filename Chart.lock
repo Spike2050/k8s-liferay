@@ -1,0 +1,18 @@
+dependencies:
+- name: client-extensions
+  repository: file://libcharts/client-extensions
+  version: 0.1.0
+- name: db-mariadb
+  repository: file://libcharts/db-mariadb
+  version: 0.1.0
+- name: liferay-dxp
+  repository: file://libcharts/liferay-dxp
+  version: 0.1.0
+- name: mailhog
+  repository: file://libcharts/mailhog
+  version: 0.1.0
+- name: search-elastic
+  repository: file://libcharts/search-elastic
+  version: 0.1.0
+digest: sha256:a3872097e5bed0a0a9bd871c4d8f5c2e2b75e75935b56ca972ab405f0bfc2193
+generated: "2025-11-17T12:24:19.8693752+01:00"

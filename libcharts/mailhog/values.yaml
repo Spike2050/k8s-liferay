@@ -1,0 +1,15 @@
+image:
+  repository: mailhog/mailhog
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  webPort: 8025
+  smtpPort: 1025
+
+ingress:
+  enabled: true
+  className: nginx
+  host: mailhog.localhost
+
+resources: {}

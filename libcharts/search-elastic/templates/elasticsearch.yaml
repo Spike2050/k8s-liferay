@@ -1,0 +1,75 @@
+apiVersion: elasticsearch.k8s.elastic.co/v1
+kind: Elasticsearch
+metadata:
+  name: {{ include "search-elastic.fullname" . }}
+  elasticsearch.alpha.k8s.elastic.co/http-scheme: http
+spec:
+
+  http:
+    tls:
+      selfSignedCertificate:
+        disabled: true
+
+  version: "{{ .Values.version }}"
+
+  nodeSets:
+    - name: default
+      count: 1
+
+      config:
+        cluster.name: "LiferayElasticsearchCluster"
+        # discovery.type: "single-node"
+        bootstrap.memory_lock: true
+        node.store.allow_mmap: false
+
+        xpack.security.enabled: false
+        xpack.security.http.ssl.enabled: false
+        xpack.security.enrollment.enabled: false
+
+        node.roles: ["master", "data", "ingest"]
+
+      podTemplate:
+        spec:
+
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            fsGroup: 1000
+
+          # ---------------------------
+          # Init container: plugins
+          # ---------------------------
+          initContainers:
+            - name: install-plugins
+              image: "docker.elastic.co/elasticsearch/elasticsearch:{{ .Values.version }}"
+              command:
+                - sh
+                - -c
+                - |
+                  for p in {{ join " " .Values.plugins }}; do
+                    echo "Installing plugin: $p"
+                    elasticsearch-plugin install --batch "$p"
+                  done
+              volumeMounts:
+                - name: elasticsearch-plugins
+                  mountPath: /usr/share/elasticsearch/plugins
+
+          containers:
+            - name: elasticsearch
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 1Gi
+                limits:
+                  cpu: 500m
+                  memory: 1Gi
+              env:
+                - name: ES_JAVA_OPTS
+                  value: "{{ .Values.javaOpts }}"
+              volumeMounts:
+                - name: elasticsearch-plugins
+                  mountPath: /usr/share/elasticsearch/plugins
+
+          volumes:
+            - name: elasticsearch-plugins
+              emptyDir: {}

@@ -1,0 +1,9 @@
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: Database
+metadata:
+  name: lportal
+spec:
+  mariaDbRef:
+    name: {{ include "db-mariadb.fullname" . }}
+  characterSet: utf8
+  collate: utf8_general_ci
