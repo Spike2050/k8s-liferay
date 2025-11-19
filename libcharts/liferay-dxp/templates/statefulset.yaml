@@ -1,0 +1,117 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "liferay-dxp.fullname" . }}
+spec:
+  serviceName: {{ include "liferay-dxp.fullname" . }}
+  replicas: {{ .Values.replicaCount }}
+
+  selector:
+    matchLabels:
+      app: {{ include "liferay-dxp.name" . }}
+
+  template:
+    metadata:
+      labels:
+        app: {{ include "liferay-dxp.name" . }}
+
+    spec:
+      containers:
+        - name: liferay
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+
+          env:
+            # --- Mail
+            - name: LIFERAY_MAIL_PERIOD_SESSION_PERIOD_MAIL_PERIOD_POP_NUMBER3__PERIOD_HOST
+              value: "{{ .Values.mailhog.host }}"
+            - name: LIFERAY_MAIL_PERIOD_SESSION_PERIOD_MAIL_PERIOD_POP_NUMBER3__PERIOD_PORT
+              value: "{{ .Values.mailhog.pop3Port }}"
+            - name: LIFERAY_MAIL_PERIOD_SESSION_PERIOD_MAIL_PERIOD_SMTP_PERIOD_HOST
+              value: "{{ .Values.mailhog.host }}"
+            - name: LIFERAY_MAIL_PERIOD_SESSION_PERIOD_MAIL_PERIOD_SMTP_PERIOD_PORT
+              value: "{{ .Values.mailhog.smtpPort }}"
+
+            # --- Java version (optional)
+            - name: JAVA_VERSION
+              value: "zulu{{ .Values.java.version }}"
+
+            # --- JVM opts
+            - name: LIFERAY_JVM_OPTS
+              value: "{{ .Values.java.jvmOpts }}"
+
+            # --- DB
+            - name: LIFERAY_JDBC_PERIOD_DEFAULT_PERIOD_DRIVER_UPPERCASEC_LASS_UPPERCASEN_AME
+              value: "org.mariadb.jdbc.Driver"
+            - name: LIFERAY_JDBC_PERIOD_DEFAULT_PERIOD_URL
+              value: "jdbc:mariadb://{{ .Release.Name }}-{{ .Values.database.host }}:{{ .Values.database.port }}/{{ .Values.database.database }}?characterEncoding=UTF-8&dontTrackOpenResources=true&holdResultsOpenOverStatementClose=true&serverTimezone=GMT&useFastDateParsing=false&useUnicode=true"
+            - name: LIFERAY_JDBC_PERIOD_DEFAULT_PERIOD_USERNAME
+              value: "{{ .Values.database.username }}"
+            - name: LIFERAY_JDBC_PERIOD_DEFAULT_PERIOD_PASSWORD
+              value: "{{ .Values.database.password }}"
+
+            # --- Misc Liferay
+            - name: LIFERAY_MODULE_PERIOD_FRAMEWORK_PERIOD_PROPERTIES_PERIOD_OSGI_PERIOD_CONSOLE
+              value: "0.0.0.0:{{ .Values.service.debugPort }}"
+
+            # --- Retry JDBC on startup
+            - name: LIFERAY_RETRY_PERIOD_JDBC_PERIOD_ON_PERIOD_STARTUP_PERIOD_DELAY
+              value: "20"
+            - name: LIFERAY_RETRY_PERIOD_JDBC_PERIOD_ON_PERIOD_STARTUP_PERIOD_MAX_PERIOD_RETRIES
+              value: "10"
+
+            # --- Liferay behavior flags
+            - name: LIFERAY_COMPANY_PERIOD_SECURITY_PERIOD_STRANGERS_PERIOD_VERIFY
+              value: "false"
+            - name: LIFERAY_USERS_PERIOD_REMINDER_PERIOD_QUERIES_PERIOD_ENABLED
+              value: "false"
+            - name: LIFERAY_LIVE_PERIOD_USERS_PERIOD_ENABLED
+              value: "true"
+            - name: LIFERAY_SESSION_PERIOD_TIMEOUT_PERIOD_AUTO_PERIOD_EXTEND
+              value: "true"
+            - name: LIFERAY_ENTERPRISE_PERIOD_PRODUCT_PERIOD_ENTERPRISE_PERIOD_SEARCH_PERIOD_ENABLED
+              value: "false"
+
+            # --- Protocol & server URL
+            - name: LIFERAY_WEB_PERIOD_SERVER_PERIOD_PROTOCOL
+              value: "http"
+            - name: SERVER_URL
+              value: "http://{{ .Values.ingress.host }}"
+
+            # --- Valid virtual hosts
+            - name: LIFERAY_VIRTUAL_PERIOD_HOSTS_PERIOD_VALID_PERIOD_HOSTS
+              value: "localhost,127.0.0.1,{{ .Values.ingress.host }},{{ include "liferay-dxp.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local,*.svc.cluster.local,10.0.0.0/8"
+
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+            - name: debug
+              containerPort: {{ .Values.service.debugPort }}
+
+          volumeMounts:
+            - name: osgi-configs
+              mountPath: /mnt/liferay/files/osgi/configs
+            - name: scripts
+              mountPath: /mnt/liferay/scripts
+
+#          readinessProbe:
+#            httpGet:
+#              path: /
+#              port: http
+#            initialDelaySeconds: 20
+#            periodSeconds: 10
+
+#          livenessProbe:
+#            httpGet:
+#              path: /
+#              port: http
+#            initialDelaySeconds: 60
+#            periodSeconds: 20
+
+      volumes:
+        - name: osgi-configs
+          configMap:
+            name: {{ include "liferay-dxp.fullname" . }}-osgi-configs
+        - name: scripts
+          configMap:
+            name: {{ include "liferay-dxp.fullname" . }}-scripts

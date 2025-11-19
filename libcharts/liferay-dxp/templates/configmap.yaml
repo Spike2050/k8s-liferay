@@ -1,0 +1,34 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "liferay-dxp.fullname" . }}-osgi-configs
+data:
+  com.liferay.portal.search.elasticsearch7.configuration.ElasticsearchConfiguration.config: |
+    networkHostAddresses=["{{ .Release.Name }}-{{ .Values.elasticsearch.host }}:9200"]
+    operationMode=REMOTE
+    authenticationEnabled=true
+    username="{{ .Values.elasticsearch.username }}"
+    password="{{ .Values.elasticsearch.password }}"
+    sslEnabled=true
+    trustSelfSignedCertificates=true
+    sslVerificationMode=none
+  com.liferay.portal.store.file.system.configuration.AdvancedFileSystemStoreConfiguration.config: |
+    rootDir="data/document_library"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "liferay-dxp.fullname" . }}-scripts
+data:
+  set_timeout_timer.sh: |
+    # We set the timeout timer to a day, because getting logged out after 15 min gets annoying
+    sed -i -E "s/(<session-timeout>)[0-9]+/\11440/g" /opt/liferay/tomcat/webapps/ROOT/WEB-INF/web.xml
+
+  add_remoteDebugging.sh: |
+    if ! grep -q JPDA_ADDRESS "/opt/liferay/tomcat/bin/setenv.sh"; then
+      echo -e "\nJPDA_ADDRESS=\"*:8000\"" >> /opt/liferay/tomcat/bin/setenv.sh
+    fi
+
+    if ! grep -q JPDA_ADDRESS "/opt/liferay/tomcat/bin/setenv.bat"; then
+      echo -e "\nJPDA_ADDRESS=\"*:8000\"" >> /opt/liferay/tomcat/bin/setenv.bat
+    fi

@@ -1,0 +1,21 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "liferay-dxp.fullname" . }}
+  labels:
+    app: {{ include "liferay-dxp.name" . }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+    - host: {{ .Values.ingress.host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "liferay-dxp.fullname" . }}
+                port:
+                  number: {{ .Values.service.port }}
+{{- end }}
