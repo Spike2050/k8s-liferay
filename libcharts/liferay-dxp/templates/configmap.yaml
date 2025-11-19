@@ -3,15 +3,12 @@ kind: ConfigMap
 metadata:
   name: {{ include "liferay-dxp.fullname" . }}-osgi-configs
 data:
-  com.liferay.portal.search.elasticsearch7.configuration.ElasticsearchConfiguration.config: |
-    networkHostAddresses=["{{ .Release.Name }}-{{ .Values.elasticsearch.host }}:9200"]
-    operationMode=REMOTE
-    authenticationEnabled=true
-    username="{{ .Values.elasticsearch.username }}"
-    password="{{ .Values.elasticsearch.password }}"
-    sslEnabled=true
-    trustSelfSignedCertificates=true
-    sslVerificationMode=none
+#  com.liferay.portal.search.elasticsearch7.configuration.ElasticsearchConfiguration.config: |
+#    networkHostAddresses=["{{ .Release.Name }}-{{ .Values.elasticsearch.host }}"]
+#    operationMode="REMOTE"
+#    authenticationEnabled=B"true"
+#    username="{{ .Values.elasticsearch.username }}"
+#    password="{{ .Values.elasticsearch.password }}"
   com.liferay.portal.store.file.system.configuration.AdvancedFileSystemStoreConfiguration.config: |
     rootDir="data/document_library"
 ---
