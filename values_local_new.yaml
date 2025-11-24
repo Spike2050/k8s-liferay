@@ -1,0 +1,137 @@
+db-mariadb:
+  enabled: false
+
+  image:
+    tag: "latest"
+    pullPolicy: Always
+
+  database: lportal
+
+  port: 3306
+
+  storage:
+    ephemeral: true
+
+  rootPassword:
+    simple:
+      password: "root"
+
+db-postgres:
+  enabled: true
+
+  image:
+    tag: "17"
+    pullPolicy: Always
+
+  database: lportal
+
+  storage:
+    size: 1Gi
+
+  rootPassword:
+    simple:
+      enabled: true
+      username: "postgres"
+      password: "postgres"
+
+search-elastic:
+  enabled: true
+
+  image:
+    tag: "8.19.7"
+    pullPolicy: IfNotPresent
+
+  ingress:
+    enabled: true
+    host: "elasticsearch.localhost"
+
+  password:
+    simple:
+      enabled: true
+      password: "MyFixedPassword123!"
+
+mailhog:
+  enabled: true
+
+  image:
+    tag: "latest"
+    pullPolicy: IfNotPresent
+
+  ingress:
+    enabled: true
+    host: mailhog.localhost
+
+liferay-dxp:
+  image:
+    tag: "latest"
+    pullPolicy: Always
+
+  logouttimer:
+    timeoutMin: 1440
+    enabled: true
+
+  remotedebugging:
+    enabled: true
+
+  elasticsearch:
+    enabled: true # if disabled it uses the sidecar
+    host: "search-elastic-es-http:9200"
+    username: "elastic"
+    password: "MyFixedPassword123!"
+    waitForScript: true
+
+  mail:
+    enabled: true
+    host: mailhog
+    smtpPort: 1025
+
+  #database:
+  #  driver: org.mariadb.jdbc.Driver
+  #  type: mariadb
+  #  host: db-mariadb
+  #  port: 3306
+  #  database: lportal
+  #  urlParams:
+  #   - key: characterEncoding
+  #     value: UTF-8
+  #   - key: dontTrackOpenResources
+  #     value: "true"
+  #   - key: holdResultsOpenOverStatementClose
+  #     value: "true"
+  #   - key: serverTimezone
+  #     value: GMT
+  #   - key: useFastDateParsing
+  #     value: "false"
+  #   - key: useUnicode
+  #     value: "true"
+  #  username: root
+  #  password: root
+
+  database:
+    driver: org.postgresql.Driver
+    type: postgresql
+    host: postgres-rw
+    port: 5432
+    database: lportal
+    urlParams:
+      - key: useUnicode
+        value: "true"
+      - key: characterEncoding
+        value: UTF-8
+      - key: useFastDateParsing
+        value: "false"
+    username: postgres
+    password: postgres
+
+  ingress:
+    host: "liferay.localhost"
+
+  gogo:
+    enabled: true
+
+  liferayFlags:
+    COMPANY_PERIOD_SECURITY_PERIOD_STRANGERS_PERIOD_VERIFY: "false"
+    USERS_PERIOD_REMINDER_PERIOD_QUERIES_PERIOD_ENABLED: "false"
+    LIVE_PERIOD_USERS_PERIOD_ENABLED: "true"
+    SESSION_PERIOD_TIMEOUT_PERIOD_AUTO_PERIOD_EXTEND: "true"
+    ENTERPRISE_PERIOD_PRODUCT_PERIOD_ENTERPRISE_PERIOD_SEARCH_PERIOD_ENABLED: "false"

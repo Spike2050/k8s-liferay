@@ -7,10 +7,12 @@ metadata:
 spec:
   ports:
     - name: http
-      port: {{ .Values.service.port }}
-      targetPort: {{ .Values.service.port }}
-    - name: debug
-      port: {{ .Values.service.debugPort }}
-      targetPort: {{ .Values.service.debugPort }}
+      port: {{ .Values.webPort }}
+      targetPort: 8080
+    {{- if .Values.gogo.enabled }}
+    - name: gogo
+      port: {{ .Values.gogo.port }}
+      targetPort: 11311
+    {{- end }}
   selector:
     app: {{ include "liferay-dxp.name" . }}

@@ -1,4 +1,4 @@
-test-release.yaml
+/test*.yaml
 persistence/
 **/charts/*.tgz
 *.zip

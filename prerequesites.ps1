@@ -51,17 +51,24 @@ function Install-HelmChartIfMissing {
 function Apply-CRDs-IfMissing {
     param(
         [string]$CrdUrl,
-        [string]$CrdName
+        [string]$CrdRegex,
+        [string[]]$ExtraArgs = @()
     )
 
-    $exists = kubectl get crd $CrdName --ignore-not-found
+    # Count CRDs matching the regex
+    $count = (
+        kubectl get crd --no-headers 2>$null |
+        Select-String -Pattern $CrdRegex |
+        Measure-Object |
+        Select -ExpandProperty Count
+    )
 
-    if ($exists) {
-        Write-Host "CRD '$CrdName' already exists. Skipping CRD apply."
+    if ($count -gt 0) {
+        Write-Host "CRDs matching '$CrdRegex' already exist ($count found). Skipping CRD apply."
     }
     else {
         Write-Host "Applying CRDs from $CrdUrl ..."
-        kubectl apply -f $CrdUrl
+        kubectl apply -f $CrdUrl @ExtraArgs
     }
 }
 
@@ -98,12 +105,21 @@ Install-HelmChartIfMissing `
     -Namespace "mariadb-operator"
 
 # ======================================================
-# 4) Elastic ECK CRDs + operator
+# 4) Install CloudNativePG CRDs + operator
+# ======================================================
+
+Apply-CRDs-IfMissing `
+    -CrdUrl "https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/release-1.27/releases/cnpg-1.27.1.yaml" `
+    -CrdRegex ".*\.postgresql\.cnpg\.io" `
+    -ExtraArgs @("--server-side")
+
+# ======================================================
+# 5) Elastic ECK CRDs + operator
 # ======================================================
 
 Apply-CRDs-IfMissing `
     -CrdUrl "https://download.elastic.co/downloads/eck/3.2.0/crds.yaml" `
-    -CrdName "elasticsearches.elasticsearch.k8s.elastic.co"
+    -CrdRegex ".*\.k8s\.elastic\.co"
 
 Install-HelmChartIfMissing `
     -Release "eck-operator" `

@@ -1,14 +1,24 @@
-version: "8.19.7"
+enabled: false
 
-#javaOpts: "-Xms512m -Xmx512m"
+image:
+  pullPolicy: IfNotPresent
+  version: "8.19.7"
 
-#plugins:
-#  - analysis-icu
-#  - analysis-kuromoji
-#  - analysis-smartcn
-#  - analysis-stempel
+plugins:
+  - analysis-icu
+  - analysis-kuromoji
+  - analysis-smartcn
+  - analysis-stempel
+
+certificates:
+  enabled: true
+
+password:
+  simple:
+    enabled: false
+    password: "MyFixedPassword123!"
 
 ingress:
-  enabled: true
+  enabled: false
   host: "elasticsearch.localhost"
-  className: "nginx" # or leave empty for default ingress class
+  className: "nginx"

@@ -1,0 +1,23 @@
+db-mariadb:
+  rootPassword:
+    simple:
+      enabled: true
+
+search-elastic:
+  certificates:
+    enabled: false
+
+  ingress:
+    className: "nginx"
+
+mailhog:
+  ingress:
+    className: nginx
+
+  service:
+    webPort: 8025
+    smtpPort: 1025
+
+liferay-dxp:
+  ingress:
+    className: "nginx"

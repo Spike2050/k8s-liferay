@@ -1,0 +1,31 @@
+{{- if .Values.enabled  }}
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: test-release-postgres
+spec:
+  instances: 1
+
+  imageName: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+  imagePullPolicy: {{ .Values.image.pullPolicy }}
+
+  bootstrap:
+    initdb:
+      database: {{.Values.database }}
+      owner: {{ .Values.rootPassword.simple.username }}
+      secret:
+        name: {{ include "db-postgres.fullname" . }}-root
+      encoding: UTF8
+      locale: en_US.UTF-8
+
+  superuserSecret:
+    name: {{ include "db-postgres.fullname" . }}-root
+
+  storage:
+{{ toYaml .Values.storage | indent 4 }}
+
+  enableSuperuserAccess: true
+
+  monitoring:
+    enablePodMonitor: false
+{{- end }}

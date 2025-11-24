@@ -3,35 +3,64 @@ image:
   tag: "2025.q3.9"
   pullPolicy: IfNotPresent
 
-resources: {}
 replicaCount: 1
 
-service:
-  port: 8080
-  debugPort: 11311
+webPort: 8080
 
 elasticsearch:
+  enabled: false # if disabled it uses the sidecar
   host: "search-elastic-es-http:9200"
   username: "elastic"
   password: "MyFixedPassword123!"
+  waitForScript: false
+
+liferayFlags: {}
+
+documentlibrary:
+  local: true
+
+logouttimer:
+  timeoutMin: 1440
+  enabled: false
+
+remotedebugging:
+  enabled: false
 
 java:
   version: "21"
   jvmOpts: "-Xms4g -Xmx4g"
 
 database:
+  driver: org.mariadb.jdbc.Driver
+  type: mariadb
   host: db-mariadb
   port: 3306
   database: lportal
+  urlParams:
+    - key: characterEncoding
+      value: UTF-8
+    - key: dontTrackOpenResources
+      value: "true"
+    - key: holdResultsOpenOverStatementClose
+      value: "true"
+    - key: serverTimezone
+      value: GMT
+    - key: useFastDateParsing
+      value: "false"
+    - key: useUnicode
+      value: "true"
   username: root
   password: root
 
-mailhog:
-  host: mailhog-server
+mail:
+  enabled: false
+  host: mailhog
   smtpPort: 1025
-  pop3Port: 8025
 
 ingress:
-  enabled: true
   className: "nginx"
   host: "liferay.localhost"
+
+gogo:
+  enabled: false
+  port: 11311

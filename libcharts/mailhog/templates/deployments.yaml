@@ -20,6 +20,6 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: smtp
-              containerPort: {{ .Values.service.smtpPort }}
+              containerPort: 1025
             - name: web
-              containerPort: {{ .Values.service.webPort }}
+              containerPort: 8025

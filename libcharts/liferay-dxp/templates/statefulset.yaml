@@ -22,15 +22,13 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
 
           env:
+{{- if .Values.mail.enabled }}
             # --- Mail
-            - name: LIFERAY_MAIL_PERIOD_SESSION_PERIOD_MAIL_PERIOD_POP_NUMBER3__PERIOD_HOST
-              value: "{{ .Values.mailhog.host }}"
-            - name: LIFERAY_MAIL_PERIOD_SESSION_PERIOD_MAIL_PERIOD_POP_NUMBER3__PERIOD_PORT
-              value: "{{ .Values.mailhog.pop3Port }}"
             - name: LIFERAY_MAIL_PERIOD_SESSION_PERIOD_MAIL_PERIOD_SMTP_PERIOD_HOST
-              value: "{{ .Values.mailhog.host }}"
+              value: "{{ .Release.Name }}-{{ .Values.mail.host }}"
             - name: LIFERAY_MAIL_PERIOD_SESSION_PERIOD_MAIL_PERIOD_SMTP_PERIOD_PORT
-              value: "{{ .Values.mailhog.smtpPort }}"
+              value: "{{ .Values.mail.smtpPort }}"
+{{- end }}
 
             # --- Java version (optional)
             - name: JAVA_VERSION
@@ -40,11 +38,16 @@ spec:
             - name: LIFERAY_JVM_OPTS
               value: "{{ .Values.java.jvmOpts }}"
 
+            {{- $params := list -}}
+            {{- range .Values.database.urlParams }}
+              {{- $params = append $params (printf "%s=%s" .key .value) }}
+            {{- end }}
+
             # --- DB
             - name: LIFERAY_JDBC_PERIOD_DEFAULT_PERIOD_DRIVER_UPPERCASEC_LASS_UPPERCASEN_AME
-              value: "org.mariadb.jdbc.Driver"
+              value: "{{ .Values.database.driver }}"
             - name: LIFERAY_JDBC_PERIOD_DEFAULT_PERIOD_URL
-              value: "jdbc:mariadb://{{ .Release.Name }}-{{ .Values.database.host }}:{{ .Values.database.port }}/{{ .Values.database.database }}?characterEncoding=UTF-8&dontTrackOpenResources=true&holdResultsOpenOverStatementClose=true&serverTimezone=GMT&useFastDateParsing=false&useUnicode=true"
+              value: "jdbc:{{ .Values.database.type }}://{{ .Release.Name }}-{{ .Values.database.host }}:{{ .Values.database.port }}/{{ .Values.database.database }}{{- if .Values.database.urlParams }}?{{- end }}{{ join "&" $params }}"
             - name: LIFERAY_JDBC_PERIOD_DEFAULT_PERIOD_USERNAME
               value: "{{ .Values.database.username }}"
             - name: LIFERAY_JDBC_PERIOD_DEFAULT_PERIOD_PASSWORD
@@ -52,7 +55,7 @@ spec:
 
             # --- Misc Liferay
             - name: LIFERAY_MODULE_PERIOD_FRAMEWORK_PERIOD_PROPERTIES_PERIOD_OSGI_PERIOD_CONSOLE
-              value: "0.0.0.0:{{ .Values.service.debugPort }}"
+              value: "0.0.0.0:{{ .Values.gogo.port }}"
 
             # --- Retry JDBC on startup
             - name: LIFERAY_RETRY_PERIOD_JDBC_PERIOD_ON_PERIOD_STARTUP_PERIOD_DELAY
@@ -61,16 +64,10 @@ spec:
               value: "10"
 
             # --- Liferay behavior flags
-            - name: LIFERAY_COMPANY_PERIOD_SECURITY_PERIOD_STRANGERS_PERIOD_VERIFY
-              value: "false"
-            - name: LIFERAY_USERS_PERIOD_REMINDER_PERIOD_QUERIES_PERIOD_ENABLED
-              value: "false"
-            - name: LIFERAY_LIVE_PERIOD_USERS_PERIOD_ENABLED
-              value: "true"
-            - name: LIFERAY_SESSION_PERIOD_TIMEOUT_PERIOD_AUTO_PERIOD_EXTEND
-              value: "true"
-            - name: LIFERAY_ENTERPRISE_PERIOD_PRODUCT_PERIOD_ENTERPRISE_PERIOD_SEARCH_PERIOD_ENABLED
-              value: "false"
+            {{- range $key, $value := .Values.liferayFlags }}
+            - name: LIFERAY_{{ $key }}
+              value: "{{ $value }}"
+            {{- end }}
 
             # --- Protocol & server URL
             - name: LIFERAY_WEB_PERIOD_SERVER_PERIOD_PROTOCOL
@@ -84,34 +81,30 @@ spec:
 
           ports:
             - name: http
-              containerPort: {{ .Values.service.port }}
-            - name: debug
-              containerPort: {{ .Values.service.debugPort }}
+              containerPort: 8080
+            {{- if .Values.gogo.enabled }}
+            - name: gogo
+              containerPort: 11311
+            {{- end }}
 
           volumeMounts:
+            {{- if or .Values.elasticsearch.enabled .Values.documentlibrary.local  }}
             - name: osgi-configs
               mountPath: /mnt/liferay/files/osgi/configs
+            {{- end }}
+            {{- if or .Values.logouttimer.enabled .Values.remotedebugging.enabled  }}
             - name: scripts
               mountPath: /mnt/liferay/scripts
-
-#          readinessProbe:
-#            httpGet:
-#              path: /
-#              port: http
-#            initialDelaySeconds: 20
-#            periodSeconds: 10
-
-#          livenessProbe:
-#            httpGet:
-#              path: /
-#              port: http
-#            initialDelaySeconds: 60
-#            periodSeconds: 20
+            {{- end }}
 
       volumes:
+        {{- if or .Values.elasticsearch.enabled .Values.documentlibrary.local  }}
         - name: osgi-configs
           configMap:
             name: {{ include "liferay-dxp.fullname" . }}-osgi-configs
+        {{- end }}
+        {{- if or .Values.logouttimer.enabled .Values.remotedebugging.enabled  }}
         - name: scripts
           configMap:
             name: {{ include "liferay-dxp.fullname" . }}-scripts
+        {{- end }}

@@ -7,11 +7,11 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-    - name: web
-      port: {{ .Values.service.webPort }}
-      targetPort: web
     - name: smtp
       port: {{ .Values.service.smtpPort }}
       targetPort: smtp
+    - name: web
+      port: {{ .Values.service.webPort }}
+      targetPort: web
   selector:
     app: {{ include "mailhog.name" . }}

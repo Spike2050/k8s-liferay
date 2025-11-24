@@ -1,17 +1,33 @@
+{{- if .Values.enabled  }}
 apiVersion: elasticsearch.k8s.elastic.co/v1
 kind: Elasticsearch
 metadata:
   name: {{ include "search-elastic.fullname" . }}
 spec:
-  version: {{ .Values.version | quote }}
+  version: {{ .Values.image.version | quote }}
 
+  {{- if not .Values.certificates.enabled }}
   http:
     tls:
       selfSignedCertificate:
         disabled: true
+  {{- end }}
 
   nodeSets:
     - name: default
       count: 1
       config:
         node.store.allow_mmap: false
+      podTemplate:
+        spec:
+          initContainers:
+          - name: install-plugins
+            command:
+            - sh
+            - -c
+            - |
+              {{- range .Values.plugins }}
+              bin/elasticsearch-plugin remove --purge {{ . }}
+              bin/elasticsearch-plugin install --batch {{ . }}
+              {{- end }}
+{{- end }}

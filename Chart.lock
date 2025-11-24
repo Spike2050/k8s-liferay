@@ -5,6 +5,9 @@ dependencies:
 - name: db-mariadb
   repository: file://libcharts/db-mariadb
   version: 0.1.0
+- name: db-postgres
+  repository: file://libcharts/db-postgres
+  version: 0.1.0
 - name: liferay-dxp
   repository: file://libcharts/liferay-dxp
   version: 0.1.0
@@ -14,5 +17,5 @@ dependencies:
 - name: search-elastic
   repository: file://libcharts/search-elastic
   version: 0.1.0
-digest: sha256:a3872097e5bed0a0a9bd871c4d8f5c2e2b75e75935b56ca972ab405f0bfc2193
-generated: "2025-11-19T16:01:08.8231139+01:00"
+digest: sha256:e60378bfdbf59cb1282ef0357c6cf2f2732f5d0b4d8a74ba1113014c686e14e1
+generated: "2025-11-24T17:04:14.1328987+01:00"

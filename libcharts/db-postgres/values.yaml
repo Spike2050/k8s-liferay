@@ -1,17 +1,16 @@
 enabled: false
 
 image:
-  repository: mariadb
-  tag: "12.0.2" # version of MariaDB image
+  repository: "ghcr.io/cloudnative-pg/postgresql"
+  tag: "17"
   pullPolicy: IfNotPresent
 
 rootPassword:
   simple:
     enabled: false
-    password: "root"
+    username: "postgres"
+    password: "postgres"
 
 database: lportal
-
-port: 3306
 
 storage:

@@ -1,0 +1,57 @@
+{{- if or .Values.logouttimer.enabled .Values.remotedebugging.enabled  }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "liferay-dxp.fullname" . }}-scripts
+data:
+  {{- if and .Values.elasticsearch.enabled .Values.elasticsearch.waitForScript }}
+  10-wait-for-elasticsearch.sh: |
+    #!/bin/sh
+
+    ES_HOST="{{ .Release.Name }}-{{ .Values.elasticsearch.host }}"
+    ES_USER="{{ .Values.elasticsearch.username }}"
+    ES_PASS="{{ .Values.elasticsearch.password }}"
+    ES_URL="http://$ES_HOST/_cluster/health"
+
+    MAX_TIME=300
+    INTERVAL=10
+    ELAPSED=0
+
+    echo "[wait-for-es] Waiting for Elasticsearch at $ES_HOST (max ${MAX_TIME}s)…"
+
+    while [ $ELAPSED -lt $MAX_TIME ]; do
+      RESPONSE=$(curl -u "${ES_USER}:${ES_PASS}" -s "${ES_URL}" --fail)
+
+      if [ $? -eq 0 ]; then
+        STATUS=$(echo "$RESPONSE" | grep -o '"status":"[^"]*"' | cut -d':' -f2 | tr -d '"')
+
+        if [ "$STATUS" = "yellow" ] || [ "$STATUS" = "green" ]; then
+          echo "[wait-for-es] Elasticsearch ready (status: $STATUS)"
+          break
+        fi
+
+        echo "[wait-for-es] ES reachable but not ready (status: $STATUS). Waiting…"
+      else
+        echo "[wait-for-es] $ELAPSED/$MAX_TIME ES not reachable or returned error. Retrying…"
+      fi
+
+      sleep $INTERVAL
+      ELAPSED=$((ELAPSED + INTERVAL))
+    done
+  {{- end }}
+  {{- if .Values.logouttimer.enabled }}
+  set_timeout_timer.sh: |
+    # We set the timeout timer to a day, because getting logged out after 15 min gets annoying
+    sed -i -E "s/(<session-timeout>)[0-9]+/\1{{ .Values.logouttimer.timeoutMin }}/g" /opt/liferay/tomcat/webapps/ROOT/WEB-INF/web.xml
+  {{- end }}
+  {{- if .Values.remotedebugging.enabled }}
+  add_remoteDebugging.sh: |
+    if ! grep -q JPDA_ADDRESS "/opt/liferay/tomcat/bin/setenv.sh"; then
+      echo -e "\nJPDA_ADDRESS=\"*:8000\"" >> /opt/liferay/tomcat/bin/setenv.sh
+    fi
+
+    if ! grep -q JPDA_ADDRESS "/opt/liferay/tomcat/bin/setenv.bat"; then
+      echo -e "\nJPDA_ADDRESS=\"*:8000\"" >> /opt/liferay/tomcat/bin/setenv.bat
+    fi
+  {{- end }}
+{{- end }}

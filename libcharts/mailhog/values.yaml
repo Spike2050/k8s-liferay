@@ -1,3 +1,5 @@
+enabled: false
+
 image:
   repository: mailhog/mailhog
   tag: latest
@@ -8,8 +10,6 @@ service:
   smtpPort: 1025
 
 ingress:
-  enabled: true
+  enabled: false
   className: nginx
   host: mailhog.localhost
-
-resources: {}
